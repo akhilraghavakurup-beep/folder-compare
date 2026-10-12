@@ -9,26 +9,58 @@
   <title>Folder Compare & Duplicate Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --primary-border: #bfdbfe;
+      --success: #059669;
+      --success-soft: #ecfdf5;
+      --success-border: #a7f3d0;
+      --danger: #e11d48;
+      --danger-soft: #fff1f2;
+      --danger-border: #fecdd3;
+      --accent: #7c3aed;
+      --accent-soft: #f5f3ff;
+      --accent-border: #ddd6fe;
+      --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+      --hover-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+    }
+
+    [data-theme="dark"] {
       --bg: #0b0f19;
       --surface: #111827;
-      --surface-elevated: #1f293d;
+      --surface-subtle: #1e293b;
       --border: rgba(255, 255, 255, 0.08);
-      --border-focus: rgba(56, 189, 248, 0.4);
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --text-dim: #6b7280;
+      --border-hover: rgba(255, 255, 255, 0.16);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
       --primary: #38bdf8;
-      --primary-hover: #0ea5e9;
-      --primary-glow: rgba(56, 189, 248, 0.25);
-      --success: #10b981;
-      --success-glow: rgba(16, 185, 129, 0.2);
-      --danger: #f43f5e;
-      --danger-glow: rgba(244, 63, 94, 0.2);
-      --accent: #818cf8;
-      --accent-glow: rgba(129, 140, 248, 0.2);
+      --primary-hover: #0284c7;
+      --primary-soft: rgba(56, 189, 248, 0.1);
+      --primary-border: rgba(56, 189, 248, 0.25);
+      --success: #34d399;
+      --success-soft: rgba(52, 211, 153, 0.1);
+      --success-border: rgba(52, 211, 153, 0.25);
+      --danger: #fb7185;
+      --danger-soft: rgba(251, 113, 133, 0.1);
+      --danger-border: rgba(251, 113, 133, 0.25);
+      --accent: #a78bfa;
+      --accent-soft: rgba(167, 139, 250, 0.1);
+      --accent-border: rgba(167, 139, 250, 0.25);
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
     }
 
     * {
@@ -40,72 +72,127 @@
     body {
       background-color: var(--bg);
       color: var(--text-main);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Top navigation bar with theme toggle */
+    .top-nav {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    .theme-toggle-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s;
+    }
+
+    .theme-toggle-btn:hover {
+      color: var(--text-main);
+      border-color: var(--border-hover);
     }
 
     .container {
       max-width: 1240px;
       width: 100%;
       margin: 0 auto;
-      padding: 36px 20px 48px;
+      padding: 24px 20px 48px;
       flex: 1;
     }
 
     /* Header */
     header {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 36px;
     }
 
-    .brand-pill {
+    .headline-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(56, 189, 248, 0.08);
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      gap: 6px;
+      background: var(--primary-soft);
+      border: 1px solid var(--primary-border);
       color: var(--primary);
-      padding: 6px 14px;
+      padding: 5px 14px;
       border-radius: 9999px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      margin-bottom: 14px;
-      letter-spacing: 0.02em;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
 
     h1 {
-      font-size: 2.25rem;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-      background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
+      font-size: 2.35rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+      margin-bottom: 10px;
     }
 
     header p {
       color: var(--text-muted);
-      font-size: 1rem;
-      max-width: 650px;
+      font-size: 1.05rem;
+      max-width: 660px;
       margin: 0 auto;
     }
 
-    .privacy-tag {
+    .security-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       margin-top: 14px;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: var(--success);
-      background: var(--success-glow);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 4px 12px;
+      background: var(--success-soft);
+      border: 1px solid var(--success-border);
+      padding: 5px 14px;
       border-radius: 9999px;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     /* Folder Pickers Grid */
@@ -125,76 +212,85 @@
     .picker-card {
       background: var(--surface);
       border: 2px dashed var(--border);
-      border-radius: 16px;
-      padding: 28px 24px;
+      border-radius: 20px;
+      padding: 32px 24px;
       text-align: center;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       cursor: pointer;
+      box-shadow: var(--card-shadow);
     }
 
     .picker-card:hover {
-      border-color: rgba(56, 189, 248, 0.4);
-      background: rgba(31, 41, 61, 0.5);
-      transform: translateY(-2px);
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      transform: translateY(-3px);
+      box-shadow: var(--hover-shadow);
     }
 
     .picker-card.active {
       border-style: solid;
       border-color: var(--primary);
-      background: rgba(17, 24, 39, 0.85);
-      box-shadow: 0 8px 24px -6px var(--primary-glow);
+      background: var(--surface);
+      box-shadow: 0 8px 30px -4px rgba(37, 99, 235, 0.15);
     }
 
     .card-icon {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 14px;
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
       color: var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(56, 189, 248, 0.1);
-      border-radius: 12px;
+      background: var(--primary-soft);
+      border: 1px solid var(--primary-border);
+      border-radius: 16px;
+      transition: transform 0.2s;
+    }
+
+    .picker-card:hover .card-icon {
+      transform: scale(1.08);
     }
 
     .picker-card h2 {
-      font-size: 1.15rem;
-      font-weight: 600;
+      font-size: 1.25rem;
+      font-weight: 700;
       color: var(--text-main);
       margin-bottom: 6px;
     }
 
     .picker-card .folder-info {
-      font-size: 0.875rem;
+      font-size: 0.9rem;
       color: var(--text-muted);
-      margin-bottom: 18px;
-      min-height: 22px;
+      margin-bottom: 20px;
+      min-height: 24px;
       word-break: break-all;
     }
 
     .picker-card .folder-info strong {
       color: var(--text-main);
+      font-weight: 600;
     }
 
     .btn-choose {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--surface-subtle);
       color: var(--text-main);
-      padding: 9px 20px;
-      border-radius: 10px;
-      font-size: 0.9rem;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 0.92rem;
       font-weight: 600;
       border: 1px solid var(--border);
       transition: all 0.2s;
     }
 
     .picker-card:hover .btn-choose {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: rgba(56, 189, 248, 0.3);
-      color: var(--primary);
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
     }
 
     input[type="file"] {
@@ -205,26 +301,26 @@
     .action-panel {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px 24px;
+      border-radius: 18px;
+      padding: 20px 26px;
       margin-bottom: 24px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 18px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: var(--card-shadow);
     }
 
     .modes-group {
       display: flex;
       align-items: center;
-      gap: 16px;
-      font-size: 0.9rem;
+      gap: 14px;
+      flex-wrap: wrap;
     }
 
     .mode-label {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
       font-size: 0.85rem;
       text-transform: uppercase;
@@ -235,20 +331,22 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--surface-subtle);
       border: 1px solid var(--border);
-      padding: 8px 14px;
-      border-radius: 10px;
+      padding: 9px 16px;
+      border-radius: 12px;
       cursor: pointer;
-      font-size: 0.88rem;
+      font-size: 0.9rem;
+      font-weight: 500;
       transition: all 0.2s;
       user-select: none;
     }
 
     .radio-pill:has(input:checked) {
-      background: rgba(56, 189, 248, 0.1);
+      background: var(--primary-soft);
       border-color: var(--primary);
       color: var(--primary);
+      font-weight: 600;
     }
 
     .radio-pill input {
@@ -257,53 +355,54 @@
     }
 
     .btn-compare {
-      background: linear-gradient(135deg, var(--primary) 0%, #0284c7 100%);
-      color: #0b0f19;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: white;
       border: none;
-      padding: 12px 32px;
+      padding: 13px 34px;
       border-radius: 12px;
-      font-size: 0.98rem;
+      font-size: 1rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 4px 16px var(--primary-glow);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     }
 
     .btn-compare:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 22px rgba(56, 189, 248, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
     }
 
     .btn-compare:disabled {
-      opacity: 0.4;
+      opacity: 0.45;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
     }
 
-    /* Progress Bar */
+    /* Progress Indicator */
     .progress-box {
       display: none;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px 24px;
+      border-radius: 16px;
+      padding: 22px 26px;
       margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
     }
 
     .progress-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.9rem;
-      font-weight: 500;
-      margin-bottom: 10px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      margin-bottom: 12px;
     }
 
     .progress-track {
-      background: rgba(255, 255, 255, 0.06);
+      background: var(--surface-subtle);
       border-radius: 9999px;
       height: 10px;
       overflow: hidden;
@@ -317,67 +416,72 @@
       border-radius: 9999px;
     }
 
-    /* Statistics Grid (Shown after compare) */
+    /* Statistics Grid (Shown after comparison) */
     .stats-container {
       display: none;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 14px;
+      gap: 16px;
       margin-bottom: 24px;
     }
 
     .stat-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px 20px;
+      border-radius: 16px;
+      padding: 20px 22px;
       position: relative;
-      overflow: hidden;
+      box-shadow: var(--card-shadow);
     }
 
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--border);
+    .stat-card.card-dup {
+      background: var(--danger-soft);
+      border-color: var(--danger-border);
     }
 
-    .stat-card.card-dup::before { background: var(--danger); }
-    .stat-card.card-a::before { background: var(--primary); }
-    .stat-card.card-b::before { background: var(--accent); }
+    .stat-card.card-a {
+      background: var(--primary-soft);
+      border-color: var(--primary-border);
+    }
+
+    .stat-card.card-b {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+    }
 
     .stat-label {
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.05em;
+      font-weight: 700;
+      letter-spacing: 0.04em;
     }
 
     .stat-value {
-      font-size: 1.85rem;
-      font-weight: 700;
+      font-size: 2rem;
+      font-weight: 800;
       margin-top: 6px;
       color: var(--text-main);
       font-feature-settings: "tnum";
     }
 
-    /* Export Unique Folders Panel (AFTER COMPARE ONLY) */
+    .stat-card.card-dup .stat-value { color: var(--danger); }
+    .stat-card.card-a .stat-value { color: var(--primary); }
+    .stat-card.card-b .stat-value { color: var(--accent); }
+
+    /* Export Unique Folders Section (APPEARS ONLY AFTER COMPARE) */
     .export-section {
-      display: none; /* Only revealed after comparison */
-      background: linear-gradient(180deg, rgba(31, 41, 61, 0.4) 0%, var(--surface) 100%);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      border-radius: 16px;
-      padding: 24px;
+      display: none; /* Appears only after compare */
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 26px;
       margin-bottom: 24px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-      animation: fadeIn 0.3s ease-out;
+      box-shadow: var(--card-shadow);
+      animation: slideUp 0.35s ease-out;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -385,21 +489,24 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
     }
 
     .export-header h2 {
-      font-size: 1.2rem;
-      font-weight: 700;
+      font-size: 1.25rem;
+      font-weight: 800;
       display: flex;
       align-items: center;
       gap: 10px;
+      color: var(--text-main);
     }
 
     .export-cards-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      gap: 20px;
     }
 
     @media (max-width: 768px) {
@@ -409,10 +516,10 @@
     }
 
     .export-card {
-      background: rgba(11, 15, 25, 0.7);
+      background: var(--surface-subtle);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -422,12 +529,12 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-weight: 600;
-      font-size: 1rem;
+      font-weight: 700;
+      font-size: 1.05rem;
     }
 
     .export-card p {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
       flex: 1;
     }
@@ -436,13 +543,13 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
     .btn-dl {
-      padding: 9px 16px;
-      border-radius: 8px;
-      font-size: 0.88rem;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
@@ -454,31 +561,34 @@
 
     .btn-dl-save-a {
       background: var(--primary);
-      color: #0b0f19;
+      color: white;
     }
     .btn-dl-save-a:hover:not(:disabled) {
       background: var(--primary-hover);
+      transform: translateY(-1px);
     }
 
     .btn-dl-save-b {
       background: var(--accent);
-      color: #0b0f19;
+      color: white;
     }
     .btn-dl-save-b:hover:not(:disabled) {
-      background: var(--accent-hover);
+      opacity: 0.9;
+      transform: translateY(-1px);
     }
 
     .btn-dl-zip {
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--surface);
       color: var(--text-main);
       border: 1px solid var(--border);
     }
     .btn-dl-zip:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.14);
+      background: var(--surface-subtle);
+      border-color: var(--border-hover);
     }
 
     .btn-dl:disabled {
-      opacity: 0.4;
+      opacity: 0.45;
       cursor: not-allowed;
     }
 
@@ -487,51 +597,50 @@
       display: none;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 20px;
       overflow: hidden;
       margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--card-shadow);
     }
 
     .toolbar {
-      padding: 16px 20px;
+      padding: 18px 24px;
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.015);
+      background: var(--surface-subtle);
     }
 
     .filter-tabs {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
     .filter-tab {
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text-muted);
-      padding: 7px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .filter-tab:hover {
-      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-hover);
       color: var(--text-main);
     }
 
     .filter-tab.active {
       background: var(--primary);
-      color: #0b0f19;
+      color: white;
       border-color: var(--primary);
-      font-weight: 600;
     }
 
     .toolbar-actions {
@@ -541,13 +650,13 @@
     }
 
     .search-input {
-      background: rgba(0, 0, 0, 0.25);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text-main);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.875rem;
-      min-width: 240px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      min-width: 250px;
       outline: none;
       transition: border-color 0.2s;
     }
@@ -557,13 +666,13 @@
     }
 
     .btn-csv {
-      background: rgba(16, 185, 129, 0.15);
+      background: var(--success-soft);
       color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      border: 1px solid var(--success-border);
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -572,7 +681,8 @@
     }
 
     .btn-csv:hover {
-      background: rgba(16, 185, 129, 0.25);
+      background: var(--success);
+      color: white;
     }
 
     .table-container {
@@ -584,69 +694,70 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
-      font-size: 0.875rem;
+      font-size: 0.88rem;
     }
 
     th {
-      background: #0d131f;
+      background: var(--surface-subtle);
       color: var(--text-muted);
-      padding: 12px 18px;
+      padding: 13px 20px;
       position: sticky;
       top: 0;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.8rem;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
       border-bottom: 1px solid var(--border);
       z-index: 1;
     }
 
     td {
-      padding: 12px 18px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
       color: var(--text-main);
       word-break: break-all;
     }
 
     tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--surface-subtle);
     }
 
     /* Badges */
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
       white-space: nowrap;
     }
 
     .badge-duplicate {
-      background: var(--danger-glow);
+      background: var(--danger-soft);
       color: var(--danger);
-      border: 1px solid rgba(244, 63, 94, 0.3);
+      border: 1px solid var(--danger-border);
     }
 
     .badge-unique-a {
-      background: var(--primary-glow);
+      background: var(--primary-soft);
       color: var(--primary);
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      border: 1px solid var(--primary-border);
     }
 
     .badge-unique-b {
-      background: var(--accent-glow);
+      background: var(--accent-soft);
       color: var(--accent);
-      border: 1px solid rgba(129, 140, 248, 0.3);
+      border: 1px solid var(--accent-border);
     }
 
     code {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 2px 6px;
-      border-radius: 4px;
+      font-size: 0.82rem;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 6px;
       color: var(--text-muted);
     }
 
@@ -659,53 +770,65 @@
     /* Footer */
     footer {
       border-top: 1px solid var(--border);
-      background: #090d16;
-      padding: 22px 20px;
+      background: var(--surface);
+      padding: 24px 20px;
       text-align: center;
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       color: var(--text-muted);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02);
     }
 
     .credit-tag {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      color: #e2e8f0;
-      font-weight: 500;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 4px 14px;
+      gap: 8px;
+      color: var(--text-main);
+      font-weight: 600;
+      background: var(--surface-subtle);
+      padding: 6px 18px;
       border-radius: 9999px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
     }
 
     .heart {
-      color: #f43f5e;
+      color: #e11d48;
       display: inline-block;
       animation: heartbeat 1.8s ease-in-out infinite;
     }
 
     @keyframes heartbeat {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.18); }
+      50% { transform: scale(1.2); }
     }
   </style>
 </head>
 <body>
 
+  <!-- Top Nav Bar -->
+  <div class="top-nav">
+    <div class="brand-badge">
+      <div class="brand-icon">⚡</div>
+      <span>FolderDiff Studio</span>
+    </div>
+    <button class="theme-toggle-btn" id="themeToggleBtn">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Mode</span>
+    </button>
+  </div>
+
   <div class="container">
     <!-- Header -->
     <header>
-      <div class="brand-pill">
-        <span>⚡</span> FolderDiff Studio
+      <div class="headline-pill">
+        <span>✨</span> Clean &amp; Pleasant Folder Comparison
       </div>
-      <h1>Folder Comparison &amp; Duplicate Finder</h1>
-      <p>Compare two directories for duplicates and extract unique files instantly without command prompt, PowerShell, or external software.</p>
-      <div class="privacy-tag">
-        <span>🔒</span> 100% Client-Side • Zero Data Uploaded • Completely Private
+      <h1>Compare Folders &amp; Remove Duplicates</h1>
+      <p>Easily match two folders to discover duplicates and extract unique files without installing any apps or running command prompt.</p>
+      <div class="security-badge">
+        <span>🔒</span> 100% Client-Side &bull; No uploads &bull; Completely secure &amp; private
       </div>
     </header>
 
@@ -713,32 +836,32 @@
     <div class="pickers-grid">
       <div class="picker-card" id="cardA" onclick="document.getElementById('inputA').click()">
         <div class="card-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         </div>
         <h2>Folder A</h2>
-        <div class="folder-info" id="statusA">Click to select folder</div>
+        <div class="folder-info" id="statusA">Click to choose folder</div>
         <div class="btn-choose">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          Choose Folder A
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Select Folder A
         </div>
         <input type="file" id="inputA" webkitdirectory directory multiple>
       </div>
 
       <div class="picker-card" id="cardB" onclick="document.getElementById('inputB').click()">
         <div class="card-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         </div>
         <h2>Folder B</h2>
-        <div class="folder-info" id="statusB">Click to select folder</div>
+        <div class="folder-info" id="statusB">Click to choose folder</div>
         <div class="btn-choose">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          Choose Folder B
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Select Folder B
         </div>
         <input type="file" id="inputB" webkitdirectory directory multiple>
       </div>
     </div>
 
-    <!-- Options and Compare Trigger -->
+    <!-- Options and Actions Bar -->
     <div class="action-panel">
       <div class="modes-group">
         <span class="mode-label">Mode:</span>
@@ -748,7 +871,7 @@
         </label>
         <label class="radio-pill">
           <input type="radio" name="method" value="quick">
-          <span>Fast (Relative Path + File Size)</span>
+          <span>Fast (Relative Path + Size)</span>
         </label>
       </div>
       <button class="btn-compare" id="btnCompare" disabled>
@@ -768,7 +891,7 @@
       </div>
     </div>
 
-    <!-- Metrics Summary (Shown after comparison) -->
+    <!-- Metrics Summary (Shown AFTER comparison) -->
     <div class="stats-container" id="statsGrid">
       <div class="stat-card">
         <div class="stat-label">Folder A Total</div>
@@ -779,16 +902,16 @@
         <div class="stat-value" id="valTotalB">0</div>
       </div>
       <div class="stat-card card-dup">
-        <div class="stat-label" style="color: var(--danger)">Duplicates Found</div>
-        <div class="stat-value" id="valDuplicates" style="color: var(--danger)">0</div>
+        <div class="stat-label" style="color: var(--danger);">Duplicates Found</div>
+        <div class="stat-value" id="valDuplicates">0</div>
       </div>
       <div class="stat-card card-a">
-        <div class="stat-label" style="color: var(--primary)">Unique to Folder A</div>
-        <div class="stat-value" id="valUniqueA" style="color: var(--primary)">0</div>
+        <div class="stat-label" style="color: var(--primary);">Unique to Folder A</div>
+        <div class="stat-value" id="valUniqueA">0</div>
       </div>
       <div class="stat-card card-b">
-        <div class="stat-label" style="color: var(--accent)">Unique to Folder B</div>
-        <div class="stat-value" id="valUniqueB" style="color: var(--accent)">0</div>
+        <div class="stat-label" style="color: var(--accent);">Unique to Folder B</div>
+        <div class="stat-value" id="valUniqueB">0</div>
       </div>
     </div>
 
@@ -798,8 +921,8 @@
         <h2>
           <span>📂</span> Export &amp; Save Unique Folders
         </h2>
-        <span style="font-size: 0.85rem; color: var(--text-muted);">
-          Extract non-duplicates while preserving their nested folder structure
+        <span style="font-size: 0.88rem; color: var(--text-muted);">
+          Extract non-duplicates while preserving their original folder structure
         </span>
       </div>
       <div class="export-cards-grid">
@@ -852,7 +975,7 @@
         <div class="toolbar-actions">
           <input type="text" id="searchBox" class="search-input" placeholder="Search filenames or paths...">
           <button class="btn-csv" id="btnExport">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
             Export CSV
           </button>
         </div>
@@ -862,7 +985,7 @@
         <table>
           <thead>
             <tr>
-              <th style="width: 130px;">Status</th>
+              <th style="width: 140px;">Status</th>
               <th>Folder A Path</th>
               <th>Folder B Path</th>
               <th style="width: 110px;">Size</th>
@@ -884,6 +1007,31 @@
   </footer>
 
   <script>
+    // Theme toggle (Defaults to pleasant light mode)
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+
+    let currentTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(currentTheme);
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'dark') {
+        themeIcon.textContent = '☀️';
+        themeText.textContent = 'Light Mode';
+      } else {
+        themeIcon.textContent = '🌙';
+        themeText.textContent = 'Dark Mode';
+      }
+      localStorage.setItem('theme', theme);
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(currentTheme);
+    });
+
     let filesA = [];
     let filesB = [];
     let processedResults = [];
@@ -933,7 +1081,7 @@
         statusA.innerHTML = `<strong>${rootName}</strong> &bull; ${filesA.length} files`;
         cardA.classList.add('active');
       } else {
-        statusA.textContent = 'Click to select folder';
+        statusA.textContent = 'Click to choose folder';
         cardA.classList.remove('active');
       }
       btnCompare.disabled = !(filesA.length > 0 && filesB.length > 0);
@@ -946,7 +1094,7 @@
         statusB.innerHTML = `<strong>${rootName}</strong> &bull; ${filesB.length} files`;
         cardB.classList.add('active');
       } else {
-        statusB.textContent = 'Click to select folder';
+        statusB.textContent = 'Click to choose folder';
         cardB.classList.remove('active');
       }
       btnCompare.disabled = !(filesA.length > 0 && filesB.length > 0);
