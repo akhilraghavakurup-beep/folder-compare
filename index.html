@@ -14,9 +14,11 @@
       --primary: #38bdf8;
       --primary-hover: #0284c7;
       --success: #34d399;
+      --success-hover: #059669;
       --warning: #fbbf24;
       --danger: #f87171;
       --accent: #818cf8;
+      --accent-hover: #6366f1;
     }
 
     * {
@@ -229,6 +231,110 @@
       margin-top: 4px;
     }
 
+    /* Actions Panel for creating Unique Folders */
+    .export-panel {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .export-panel-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .export-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .export-actions-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .export-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .export-box h3 {
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .export-box p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .export-box-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-action {
+      background: var(--card-border);
+      color: var(--text);
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover:not(:disabled) {
+      background: #475569;
+    }
+
+    .btn-action-primary {
+      background: #0284c7;
+      color: white;
+    }
+
+    .btn-action-primary:hover:not(:disabled) {
+      background: #0369a1;
+    }
+
+    .btn-action-accent {
+      background: #6366f1;
+      color: white;
+    }
+
+    .btn-action-accent:hover:not(:disabled) {
+      background: #4f46e5;
+    }
+
+    .btn-action:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
     .filter-tabs {
       display: flex;
       flex-wrap: wrap;
@@ -370,9 +476,9 @@
   <div class="container">
     <header>
       <h1>Folder Comparison & Duplicate Filter</h1>
-      <p>Compare two folders right inside your web browser (Edge / Chrome) without uploading files or installing apps.</p>
+      <p>Compare two folders right inside your web browser without uploading files or installing apps.</p>
       <div class="privacy-badge">
-        <span>🔒</span> 100% Offline &amp; Private: No files leave your device.
+        <span>🔒</span> 100% Offline &amp; Private: Zero network uploads. Runs locally in your browser.
       </div>
     </header>
 
@@ -400,7 +506,7 @@
     <!-- Options and Actions -->
     <div class="options-bar">
       <div class="radio-group">
-        <strong>Comparison Method:</strong>
+        <strong>Comparison Mode:</strong>
         <label>
           <input type="radio" name="method" value="hash" checked>
           Exact File Content (SHA-256 Hash)
@@ -448,6 +554,48 @@
       </div>
     </div>
 
+    <!-- Export Unique Folders Section -->
+    <div class="export-panel" id="exportPanel" style="display: none;">
+      <div class="export-panel-title">
+        <span>📂</span> Create &amp; Save Unique Folders
+      </div>
+      <div class="export-actions-grid">
+        <!-- Unique A Export -->
+        <div class="export-box">
+          <h3>
+            <span style="color: var(--primary);">Unique to Folder A</span>
+            <span id="badgeCountA" class="badge badge-unique-a">0 files</span>
+          </h3>
+          <p>Export all non-duplicate files from Folder A with their original folder structure preserved.</p>
+          <div class="export-box-buttons">
+            <button class="btn-action btn-action-primary" id="btnSaveDiskA">
+              📁 Save to Local Folder
+            </button>
+            <button class="btn-action" id="btnZipA">
+              📦 Download as ZIP (.zip)
+            </button>
+          </div>
+        </div>
+
+        <!-- Unique B Export -->
+        <div class="export-box">
+          <h3>
+            <span style="color: var(--accent);">Unique to Folder B</span>
+            <span id="badgeCountB" class="badge badge-unique-b">0 files</span>
+          </h3>
+          <p>Export all non-duplicate files from Folder B with their original folder structure preserved.</p>
+          <div class="export-box-buttons">
+            <button class="btn-action btn-action-accent" id="btnSaveDiskB">
+              📁 Save to Local Folder
+            </button>
+            <button class="btn-action" id="btnZipB">
+              📦 Download as ZIP (.zip)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Filters & Table Results -->
     <div id="resultsSection" style="display: none;">
       <div class="filter-tabs">
@@ -489,6 +637,8 @@
     let filesA = [];
     let filesB = [];
     let processedResults = [];
+    let uniqueFilesA = []; // List of { file: File, relPath: string }
+    let uniqueFilesB = []; // List of { file: File, relPath: string }
     let currentFilter = 'all';
 
     const inputA = document.getElementById('inputA');
@@ -503,10 +653,18 @@
     const progressText = document.getElementById('progressText');
     const progressPercent = document.getElementById('progressPercent');
     const statsGrid = document.getElementById('statsGrid');
+    const exportPanel = document.getElementById('exportPanel');
     const resultsSection = document.getElementById('resultsSection');
     const tableBody = document.getElementById('tableBody');
     const searchBox = document.getElementById('searchBox');
     const btnExport = document.getElementById('btnExport');
+
+    const btnSaveDiskA = document.getElementById('btnSaveDiskA');
+    const btnZipA = document.getElementById('btnZipA');
+    const btnSaveDiskB = document.getElementById('btnSaveDiskB');
+    const btnZipB = document.getElementById('btnZipB');
+    const badgeCountA = document.getElementById('badgeCountA');
+    const badgeCountB = document.getElementById('badgeCountB');
 
     function formatBytes(bytes) {
       if (bytes === 0) return '0 B';
@@ -526,7 +684,7 @@
         statusA.textContent = 'No folder selected';
         cardA.classList.remove('active');
       }
-      checkReady();
+      btnCompare.disabled = !(filesA.length > 0 && filesB.length > 0);
     });
 
     inputB.addEventListener('change', (e) => {
@@ -539,30 +697,22 @@
         statusB.textContent = 'No folder selected';
         cardB.classList.remove('active');
       }
-      checkReady();
+      btnCompare.disabled = !(filesA.length > 0 && filesB.length > 0);
     });
 
-    function checkReady() {
-      btnCompare.disabled = !(filesA.length > 0 && filesB.length > 0);
-    }
-
     async function computeFileHash(file) {
-      // For large files (> 64MB), calculate hash from head + tail + size to avoid freezing browser memory
       if (file.size > 64 * 1024 * 1024) {
-        const headChunk = await file.slice(0, 1024 * 1024).arrayBuffer();
-        const tailChunk = await file.slice(file.size - 1024 * 1024).arrayBuffer();
-        const combined = new Uint8Array(headChunk.byteLength + tailChunk.byteLength);
-        combined.set(new Uint8Array(headChunk), 0);
-        combined.set(new Uint8Array(tailChunk), headChunk.byteLength);
-        const hashBuf = await crypto.subtle.digest('SHA-256', combined);
-        const hashArray = Array.from(new Uint8Array(hashBuf));
-        return 'partial-' + file.size + '-' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+        const head = await file.slice(0, 1024 * 1024).arrayBuffer();
+        const tail = await file.slice(file.size - 1024 * 1024).arrayBuffer();
+        const comb = new Uint8Array(head.byteLength + tail.byteLength);
+        comb.set(new Uint8Array(head), 0);
+        comb.set(new Uint8Array(tail), head.byteLength);
+        const hashBuf = await crypto.subtle.digest('SHA-256', comb);
+        return 'partial-' + file.size + '-' + Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
       }
-
       const buffer = await file.arrayBuffer();
       const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
     function getRelativePath(file) {
@@ -575,6 +725,7 @@
       btnCompare.disabled = true;
       progressSection.style.display = 'block';
       statsGrid.style.display = 'none';
+      exportPanel.style.display = 'none';
       resultsSection.style.display = 'none';
 
       const method = document.querySelector('input[name="method"]:checked').value;
@@ -588,74 +739,44 @@
         progressText.textContent = `${stepText} (${completed}/${total})`;
       }
 
-      const mapA = new Map();
-      const mapB = new Map();
+      const mapA = new Map(), mapB = new Map();
 
-      // Process Folder A
+      // Scan Folder A
       for (let i = 0; i < filesA.length; i++) {
         const file = filesA[i];
-        let key;
-        let hashDisplay = '';
-
-        if (method === 'hash') {
-          key = await computeFileHash(file);
-          hashDisplay = key.substring(0, 12) + '...';
-        } else {
-          key = `${getRelativePath(file)}_${file.size}`;
-          hashDisplay = 'Name+Size';
-        }
+        const relPath = getRelativePath(file);
+        const key = method === 'hash' ? await computeFileHash(file) : `${relPath}_${file.size}`;
+        const hashDisplay = method === 'hash' ? key.substring(0, 12) + '...' : 'Name+Size';
 
         if (!mapA.has(key)) mapA.set(key, []);
-        mapA.get(key).push({
-          file: file,
-          relPath: getRelativePath(file),
-          size: file.size,
-          key: key,
-          hashDisplay: hashDisplay
-        });
-
+        mapA.get(key).push({ file, relPath, size: file.size, key, hashDisplay });
         completed++;
-        if (completed % 20 === 0 || completed === filesA.length) {
+        if (completed % 15 === 0 || completed === filesA.length) {
           updateProgress('Scanning Folder A');
           await new Promise(r => setTimeout(r, 0));
         }
       }
 
-      // Process Folder B
+      // Scan Folder B
       for (let i = 0; i < filesB.length; i++) {
         const file = filesB[i];
-        let key;
-        let hashDisplay = '';
-
-        if (method === 'hash') {
-          key = await computeFileHash(file);
-          hashDisplay = key.substring(0, 12) + '...';
-        } else {
-          key = `${getRelativePath(file)}_${file.size}`;
-          hashDisplay = 'Name+Size';
-        }
+        const relPath = getRelativePath(file);
+        const key = method === 'hash' ? await computeFileHash(file) : `${relPath}_${file.size}`;
+        const hashDisplay = method === 'hash' ? key.substring(0, 12) + '...' : 'Name+Size';
 
         if (!mapB.has(key)) mapB.set(key, []);
-        mapB.get(key).push({
-          file: file,
-          relPath: getRelativePath(file),
-          size: file.size,
-          key: key,
-          hashDisplay: hashDisplay
-        });
-
+        mapB.get(key).push({ file, relPath, size: file.size, key, hashDisplay });
         completed++;
-        if (completed % 20 === 0 || completed === total) {
+        if (completed % 15 === 0 || completed === total) {
           updateProgress('Scanning Folder B');
           await new Promise(r => setTimeout(r, 0));
         }
       }
 
-      // Compare
       processedResults = [];
+      uniqueFilesA = [];
+      uniqueFilesB = [];
       let countDup = 0;
-      let countUniqueA = 0;
-      let countUniqueB = 0;
 
       const visitedKeysInB = new Set();
 
@@ -664,7 +785,6 @@
           const itemsB = mapB.get(key);
           visitedKeysInB.add(key);
           countDup++;
-
           processedResults.push({
             type: 'duplicate',
             pathA: itemsA.map(x => x.relPath).join(', '),
@@ -674,7 +794,7 @@
           });
         } else {
           for (const item of itemsA) {
-            countUniqueA++;
+            uniqueFilesA.push({ file: item.file, relPath: item.relPath });
             processedResults.push({
               type: 'unique-a',
               pathA: item.relPath,
@@ -689,7 +809,7 @@
       for (const [key, itemsB] of mapB.entries()) {
         if (!visitedKeysInB.has(key)) {
           for (const item of itemsB) {
-            countUniqueB++;
+            uniqueFilesB.push({ file: item.file, relPath: item.relPath });
             processedResults.push({
               type: 'unique-b',
               pathA: '—',
@@ -701,30 +821,44 @@
         }
       }
 
+      // Update counters
       document.getElementById('valTotalA').textContent = filesA.length;
       document.getElementById('valTotalB').textContent = filesB.length;
       document.getElementById('valDuplicates').textContent = countDup;
-      document.getElementById('valUniqueA').textContent = countUniqueA;
-      document.getElementById('valUniqueB').textContent = countUniqueB;
+      document.getElementById('valUniqueA').textContent = uniqueFilesA.length;
+      document.getElementById('valUniqueB').textContent = uniqueFilesB.length;
+
+      badgeCountA.textContent = `${uniqueFilesA.length} files`;
+      badgeCountB.textContent = `${uniqueFilesB.length} files`;
+
+      btnSaveDiskA.disabled = uniqueFilesA.length === 0;
+      btnZipA.disabled = uniqueFilesA.length === 0;
+      btnSaveDiskB.disabled = uniqueFilesB.length === 0;
+      btnZipB.disabled = uniqueFilesB.length === 0;
 
       progressSection.style.display = 'none';
       statsGrid.style.display = 'grid';
+      exportPanel.style.display = 'block';
       resultsSection.style.display = 'block';
       btnCompare.disabled = false;
 
       renderTable();
     });
 
+    function escapeHtml(t) {
+      const d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
+
     function renderTable() {
       const query = searchBox.value.toLowerCase().trim();
       tableBody.innerHTML = '';
-
       const filtered = processedResults.filter(row => {
         if (currentFilter === 'duplicate' && row.type !== 'duplicate') return false;
         if (currentFilter === 'unique-both' && row.type === 'duplicate') return false;
         if (currentFilter === 'unique-a' && row.type !== 'unique-a') return false;
         if (currentFilter === 'unique-b' && row.type !== 'unique-b') return false;
-
         if (query) {
           return row.pathA.toLowerCase().includes(query) || row.pathB.toLowerCase().includes(query);
         }
@@ -736,34 +870,18 @@
         return;
       }
 
-      const rowsHtml = filtered.map(item => {
-        let badgeHtml = '';
-        if (item.type === 'duplicate') {
-          badgeHtml = '<span class="badge badge-duplicate">Duplicate</span>';
-        } else if (item.type === 'unique-a') {
-          badgeHtml = '<span class="badge badge-unique-a">Unique to A</span>';
-        } else {
-          badgeHtml = '<span class="badge badge-unique-b">Unique to B</span>';
-        }
-
-        return `
-          <tr>
-            <td>${badgeHtml}</td>
-            <td>${escapeHtml(item.pathA)}</td>
-            <td>${escapeHtml(item.pathB)}</td>
-            <td>${formatBytes(item.size)}</td>
-            <td><code>${item.hash}</code></td>
-          </tr>
-        `;
+      tableBody.innerHTML = filtered.map(item => {
+        let badge = item.type === 'duplicate' ? '<span class="badge badge-duplicate">Duplicate</span>' :
+                    item.type === 'unique-a' ? '<span class="badge badge-unique-a">Unique to A</span>' :
+                    '<span class="badge badge-unique-b">Unique to B</span>';
+        return `<tr>
+          <td>${badge}</td>
+          <td>${escapeHtml(item.pathA)}</td>
+          <td>${escapeHtml(item.pathB)}</td>
+          <td>${formatBytes(item.size)}</td>
+          <td><code>${item.hash}</code></td>
+        </tr>`;
       }).join('');
-
-      tableBody.innerHTML = rowsHtml;
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
     }
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -775,31 +893,200 @@
       });
     });
 
-    searchBox.addEventListener('input', () => {
-      renderTable();
+    searchBox.addEventListener('input', renderTable);
+
+    // CSV Export
+    btnExport.addEventListener('click', () => {
+      if (!processedResults.length) return;
+      const header = ['Status', 'Folder A Path', 'Folder B Path', 'Size (Bytes)', 'Hash'];
+      const rows = processedResults.map(r => [
+        r.type, `"${r.pathA.replace(/"/g, '""')}"`, `"${r.pathB.replace(/"/g, '""')}"`, r.size, `"${r.hash}"`
+      ]);
+      const blob = new Blob([[header.join(','), ...rows.map(e => e.join(','))].join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `folder_comparison_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     });
 
-    btnExport.addEventListener('click', () => {
-      if (processedResults.length === 0) return;
+    // --- SAVE TO LOCAL FOLDER VIA DIRECTORY PICKER ---
+    async function saveFilesToDirectory(items, defaultFolderName) {
+      if (!('showDirectoryPicker' in window)) {
+        alert("Your browser doesn't support direct local directory saving. Please use the 'Download as ZIP' button instead.");
+        return;
+      }
 
-      const header = ['Status', 'Folder A Relative Path', 'Folder B Relative Path', 'File Size (Bytes)', 'Hash Signature'];
-      const rows = processedResults.map(r => [
-        r.type,
-        `"${r.pathA.replace(/"/g, '""')}"`,
-        `"${r.pathB.replace(/"/g, '""')}"`,
-        r.size,
-        `"${r.hash}"`
-      ]);
+      try {
+        // Prompt user to pick where to save the folder
+        const parentHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        const targetDirHandle = await parentHandle.getDirectoryHandle(defaultFolderName, { create: true });
 
-      const csvContent = [header.join(','), ...rows.map(e => e.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `folder_comparison_results_${Date.now()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        progressSection.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
+        progressText.textContent = `Writing files to ${defaultFolderName}...`;
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const parts = item.relPath.split('/');
+          const fileName = parts.pop();
+
+          let currDir = targetDirHandle;
+          for (const subDirName of parts) {
+            if (subDirName) {
+              currDir = await currDir.getDirectoryHandle(subDirName, { create: true });
+            }
+          }
+
+          const fileHandle = await currDir.getFileHandle(fileName, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(item.file);
+          await writable.close();
+
+          const pct = Math.round(((i + 1) / items.length) * 100);
+          progressBar.style.width = pct + '%';
+          progressPercent.textContent = pct + '%';
+          progressText.textContent = `Writing ${item.relPath} (${i + 1}/${items.length})`;
+        }
+
+        progressSection.style.display = 'none';
+        alert(`Successfully created folder "${defaultFolderName}" with ${items.length} unique files!`);
+      } catch (err) {
+        progressSection.style.display = 'none';
+        if (err.name !== 'AbortError') {
+          console.error(err);
+          alert('Error saving folder: ' + err.message);
+        }
+      }
+    }
+
+    btnSaveDiskA.addEventListener('click', () => {
+      saveFilesToDirectory(uniqueFilesA, 'Unique_Folder_A');
+    });
+
+    btnSaveDiskB.addEventListener('click', () => {
+      saveFilesToDirectory(uniqueFilesB, 'Unique_Folder_B');
+    });
+
+    // --- PURE JS ZIP GENERATOR (ZERO EXTERNAL DEPENDENCIES) ---
+    function crc32(buf) {
+      let table = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let k = 0; k < 8; k++) c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+        table[i] = c;
+      }
+      let c = 0 ^ (-1);
+      for (let i = 0; i < buf.length; i++) {
+        c = (c >>> 8) ^ table[(c ^ buf[i]) & 0xFF];
+      }
+      return (c ^ (-1)) >>> 0;
+    }
+
+    async function downloadFilesAsZip(items, zipFileName) {
+      if (items.length === 0) return;
+
+      progressSection.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressPercent.textContent = '0%';
+      progressText.textContent = `Packaging ${zipFileName}...`;
+
+      const encoder = new TextEncoder();
+      const fileRecords = [];
+      const parts = [];
+      let offset = 0;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const nameBuf = encoder.encode(item.relPath);
+        const dataBuf = new Uint8Array(await item.file.arrayBuffer());
+        const crc = crc32(dataBuf);
+        const size = dataBuf.length;
+
+        // Local file header (30 bytes + name)
+        const localHeader = new Uint8Array(30);
+        const view = new DataView(localHeader.buffer);
+        view.setUint32(0, 0x04034b50, true);
+        view.setUint16(4, 20, true);
+        view.setUint16(6, 0x0800, true); // UTF-8
+        view.setUint16(8, 0, true);      // store
+        view.setUint16(10, 0, true);
+        view.setUint16(12, 0, true);
+        view.setUint32(14, crc, true);
+        view.setUint32(18, size, true);
+        view.setUint32(22, size, true);
+        view.setUint16(26, nameBuf.length, true);
+        view.setUint16(28, 0, true);
+
+        parts.push(localHeader, nameBuf, dataBuf);
+        fileRecords.push({ nameBuf, crc, size, offset });
+        offset += localHeader.length + nameBuf.length + dataBuf.length;
+
+        const pct = Math.round(((i + 1) / items.length) * 100);
+        progressBar.style.width = pct + '%';
+        progressPercent.textContent = pct + '%';
+        progressText.textContent = `Adding ${item.relPath} (${i + 1}/${items.length})`;
+      }
+
+      const centralDirStart = offset;
+      let centralDirSize = 0;
+
+      for (const rec of fileRecords) {
+        const cdir = new Uint8Array(46);
+        const view = new DataView(cdir.buffer);
+        view.setUint32(0, 0x02014b50, true);
+        view.setUint16(4, 20, true);
+        view.setUint16(6, 20, true);
+        view.setUint16(8, 0x0800, true);
+        view.setUint16(10, 0, true);
+        view.setUint16(12, 0, true);
+        view.setUint16(14, 0, true);
+        view.setUint32(16, rec.crc, true);
+        view.setUint32(20, rec.size, true);
+        view.setUint32(24, rec.size, true);
+        view.setUint16(28, rec.nameBuf.length, true);
+        view.setUint16(30, 0, true);
+        view.setUint16(32, 0, true);
+        view.setUint16(34, 0, true);
+        view.setUint16(36, 0, true);
+        view.setUint32(38, 0, true);
+        view.setUint32(42, rec.offset, true);
+
+        parts.push(cdir, rec.nameBuf);
+        centralDirSize += cdir.length + rec.nameBuf.length;
+      }
+
+      const eocd = new Uint8Array(22);
+      const eocdView = new DataView(eocd.buffer);
+      eocdView.setUint32(0, 0x06054b50, true);
+      eocdView.setUint16(4, 0, true);
+      eocdView.setUint16(6, 0, true);
+      eocdView.setUint16(8, fileRecords.length, true);
+      eocdView.setUint16(10, fileRecords.length, true);
+      eocdView.setUint32(12, centralDirSize, true);
+      eocdView.setUint32(16, centralDirStart, true);
+      eocdView.setUint16(20, 0, true);
+      parts.push(eocd);
+
+      const zipBlob = new Blob(parts, { type: 'application/zip' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(zipBlob);
+      a.download = zipFileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      progressSection.style.display = 'none';
+    }
+
+    btnZipA.addEventListener('click', () => {
+      downloadFilesAsZip(uniqueFilesA, 'Unique_Folder_A.zip');
+    });
+
+    btnZipB.addEventListener('click', () => {
+      downloadFilesAsZip(uniqueFilesB, 'Unique_Folder_B.zip');
     });
   </script>
 </body>
