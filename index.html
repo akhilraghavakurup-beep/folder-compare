@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Folder Compare & Duplicate Finder (100% Local)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --accent: #818cf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px 16px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    .folders-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .folders-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .folder-card {
+      background: var(--card-bg);
+      border: 2px dashed var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .folder-card.active {
+      border-color: var(--primary);
+      border-style: solid;
+      background: rgba(30, 41, 59, 0.85);
+    }
+
+    .folder-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .folder-card .status {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      min-height: 20px;
+      word-break: break-all;
+    }
+
+    .btn-select {
+      display: inline-block;
+      background: var(--card-border);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-select:hover {
+      background: #475569;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .options-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .radio-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.9rem;
+    }
+
+    .radio-group label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #0f172a;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .progress-section {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar-bg {
+      background: var(--card-border);
+      border-radius: 9999px;
+      height: 12px;
+      overflow: hidden;
+      margin: 12px 0 8px;
+    }
+
+    .progress-bar-fill {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      height: 100%;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tabs-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #0f172a;
+      border-color: var(--primary);
+    }
+
+    .search-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      min-width: 250px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .results-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-wrapper {
+      max-height: 550px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: #111827;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-duplicate {
+      background: rgba(248, 113, 113, 0.2);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .badge-unique-a {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .badge-unique-b {
+      background: rgba(129, 140, 248, 0.2);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .export-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .export-btn:hover {
+      background: #059669;
+    }
+
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Folder Comparison & Duplicate Filter</h1>
+      <p>Compare two folders right inside your web browser (Edge / Chrome) without uploading files or installing apps.</p>
+      <div class="privacy-badge">
+        <span>🔒</span> 100% Offline &amp; Private: No files leave your device.
+      </div>
+    </header>
+
+    <!-- Folder Pickers -->
+    <div class="folders-grid">
+      <div class="folder-card" id="cardA">
+        <h2>Folder A</h2>
+        <div class="status" id="statusA">No folder selected</div>
+        <label class="btn-select">
+          Choose Folder A
+          <input type="file" id="inputA" webkitdirectory directory multiple>
+        </label>
+      </div>
+
+      <div class="folder-card" id="cardB">
+        <h2>Folder B</h2>
+        <div class="status" id="statusB">No folder selected</div>
+        <label class="btn-select">
+          Choose Folder B
+          <input type="file" id="inputB" webkitdirectory directory multiple>
+        </label>
+      </div>
+    </div>
+
+    <!-- Options and Actions -->
+    <div class="options-bar">
+      <div class="radio-group">
+        <strong>Comparison Method:</strong>
+        <label>
+          <input type="radio" name="method" value="hash" checked>
+          Exact File Content (SHA-256 Hash)
+        </label>
+        <label>
+          <input type="radio" name="method" value="quick">
+          Quick (Relative Path + File Size)
+        </label>
+      </div>
+      <button class="btn-primary" id="btnCompare" disabled>Compare Folders</button>
+    </div>
+
+    <!-- Progress Tracker -->
+    <div class="progress-section" id="progressSection">
+      <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+        <span id="progressText">Analyzing files...</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid" id="statsGrid" style="display: none;">
+      <div class="stat-card">
+        <div class="label">Total Folder A Files</div>
+        <div class="value" id="valTotalA">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Folder B Files</div>
+        <div class="value" id="valTotalB">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label" style="color: var(--danger)">Duplicate Files Found</div>
+        <div class="value" id="valDuplicates" style="color: var(--danger)">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label" style="color: var(--primary)">Unique to Folder A</div>
+        <div class="value" id="valUniqueA" style="color: var(--primary)">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label" style="color: var(--accent)">Unique to Folder B</div>
+        <div class="value" id="valUniqueB" style="color: var(--accent)">0</div>
+      </div>
+    </div>
+
+    <!-- Filters & Table Results -->
+    <div id="resultsSection" style="display: none;">
+      <div class="filter-tabs">
+        <div class="tabs-group">
+          <button class="tab-btn active" data-filter="all">All Files</button>
+          <button class="tab-btn" data-filter="duplicate">Duplicates Only</button>
+          <button class="tab-btn" data-filter="unique-both">Non-Duplicates (Unique to Either)</button>
+          <button class="tab-btn" data-filter="unique-a">Unique to Folder A</button>
+          <button class="tab-btn" data-filter="unique-b">Unique to Folder B</button>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="searchBox" class="search-box" placeholder="Filter by filename or path...">
+          <button class="export-btn" id="btnExport">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="results-container">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 140px;">Status</th>
+                <th>Folder A File</th>
+                <th>Folder B File</th>
+                <th style="width: 120px;">File Size</th>
+                <th style="width: 150px;">Hash / Signature</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let filesA = [];
+    let filesB = [];
+    let processedResults = [];
+    let currentFilter = 'all';
+
+    const inputA = document.getElementById('inputA');
+    const inputB = document.getElementById('inputB');
+    const statusA = document.getElementById('statusA');
+    const statusB = document.getElementById('statusB');
+    const cardA = document.getElementById('cardA');
+    const cardB = document.getElementById('cardB');
+    const btnCompare = document.getElementById('btnCompare');
+    const progressSection = document.getElementById('progressSection');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
+    const statsGrid = document.getElementById('statsGrid');
+    const resultsSection = document.getElementById('resultsSection');
+    const tableBody = document.getElementById('tableBody');
+    const searchBox = document.getElementById('searchBox');
+    const btnExport = document.getElementById('btnExport');
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    inputA.addEventListener('change', (e) => {
+      filesA = Array.from(e.target.files);
+      if (filesA.length > 0) {
+        const rootName = filesA[0].webkitRelativePath.split('/')[0] || "Selected Folder";
+        statusA.innerHTML = `<strong>${rootName}</strong> (${filesA.length} files)`;
+        cardA.classList.add('active');
+      } else {
+        statusA.textContent = 'No folder selected';
+        cardA.classList.remove('active');
+      }
+      checkReady();
+    });
+
+    inputB.addEventListener('change', (e) => {
+      filesB = Array.from(e.target.files);
+      if (filesB.length > 0) {
+        const rootName = filesB[0].webkitRelativePath.split('/')[0] || "Selected Folder";
+        statusB.innerHTML = `<strong>${rootName}</strong> (${filesB.length} files)`;
+        cardB.classList.add('active');
+      } else {
+        statusB.textContent = 'No folder selected';
+        cardB.classList.remove('active');
+      }
+      checkReady();
+    });
+
+    function checkReady() {
+      btnCompare.disabled = !(filesA.length > 0 && filesB.length > 0);
+    }
+
+    async function computeFileHash(file) {
+      // For large files (> 64MB), calculate hash from head + tail + size to avoid freezing browser memory
+      if (file.size > 64 * 1024 * 1024) {
+        const headChunk = await file.slice(0, 1024 * 1024).arrayBuffer();
+        const tailChunk = await file.slice(file.size - 1024 * 1024).arrayBuffer();
+        const combined = new Uint8Array(headChunk.byteLength + tailChunk.byteLength);
+        combined.set(new Uint8Array(headChunk), 0);
+        combined.set(new Uint8Array(tailChunk), headChunk.byteLength);
+        const hashBuf = await crypto.subtle.digest('SHA-256', combined);
+        const hashArray = Array.from(new Uint8Array(hashBuf));
+        return 'partial-' + file.size + '-' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+      }
+
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function getRelativePath(file) {
+      const parts = file.webkitRelativePath.split('/');
+      parts.shift(); // remove root folder name
+      return parts.join('/') || file.name;
+    }
+
+    btnCompare.addEventListener('click', async () => {
+      btnCompare.disabled = true;
+      progressSection.style.display = 'block';
+      statsGrid.style.display = 'none';
+      resultsSection.style.display = 'none';
+
+      const method = document.querySelector('input[name="method"]:checked').value;
+      const total = filesA.length + filesB.length;
+      let completed = 0;
+
+      function updateProgress(stepText) {
+        const pct = Math.round((completed / total) * 100);
+        progressBar.style.width = pct + '%';
+        progressPercent.textContent = pct + '%';
+        progressText.textContent = `${stepText} (${completed}/${total})`;
+      }
+
+      const mapA = new Map();
+      const mapB = new Map();
+
+      // Process Folder A
+      for (let i = 0; i < filesA.length; i++) {
+        const file = filesA[i];
+        let key;
+        let hashDisplay = '';
+
+        if (method === 'hash') {
+          key = await computeFileHash(file);
+          hashDisplay = key.substring(0, 12) + '...';
+        } else {
+          key = `${getRelativePath(file)}_${file.size}`;
+          hashDisplay = 'Name+Size';
+        }
+
+        if (!mapA.has(key)) mapA.set(key, []);
+        mapA.get(key).push({
+          file: file,
+          relPath: getRelativePath(file),
+          size: file.size,
+          key: key,
+          hashDisplay: hashDisplay
+        });
+
+        completed++;
+        if (completed % 20 === 0 || completed === filesA.length) {
+          updateProgress('Scanning Folder A');
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+
+      // Process Folder B
+      for (let i = 0; i < filesB.length; i++) {
+        const file = filesB[i];
+        let key;
+        let hashDisplay = '';
+
+        if (method === 'hash') {
+          key = await computeFileHash(file);
+          hashDisplay = key.substring(0, 12) + '...';
+        } else {
+          key = `${getRelativePath(file)}_${file.size}`;
+          hashDisplay = 'Name+Size';
+        }
+
+        if (!mapB.has(key)) mapB.set(key, []);
+        mapB.get(key).push({
+          file: file,
+          relPath: getRelativePath(file),
+          size: file.size,
+          key: key,
+          hashDisplay: hashDisplay
+        });
+
+        completed++;
+        if (completed % 20 === 0 || completed === total) {
+          updateProgress('Scanning Folder B');
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+
+      // Compare
+      processedResults = [];
+      let countDup = 0;
+      let countUniqueA = 0;
+      let countUniqueB = 0;
+
+      const visitedKeysInB = new Set();
+
+      for (const [key, itemsA] of mapA.entries()) {
+        if (mapB.has(key)) {
+          const itemsB = mapB.get(key);
+          visitedKeysInB.add(key);
+          countDup++;
+
+          processedResults.push({
+            type: 'duplicate',
+            pathA: itemsA.map(x => x.relPath).join(', '),
+            pathB: itemsB.map(x => x.relPath).join(', '),
+            size: itemsA[0].size,
+            hash: itemsA[0].hashDisplay
+          });
+        } else {
+          for (const item of itemsA) {
+            countUniqueA++;
+            processedResults.push({
+              type: 'unique-a',
+              pathA: item.relPath,
+              pathB: '—',
+              size: item.size,
+              hash: item.hashDisplay
+            });
+          }
+        }
+      }
+
+      for (const [key, itemsB] of mapB.entries()) {
+        if (!visitedKeysInB.has(key)) {
+          for (const item of itemsB) {
+            countUniqueB++;
+            processedResults.push({
+              type: 'unique-b',
+              pathA: '—',
+              pathB: item.relPath,
+              size: item.size,
+              hash: item.hashDisplay
+            });
+          }
+        }
+      }
+
+      document.getElementById('valTotalA').textContent = filesA.length;
+      document.getElementById('valTotalB').textContent = filesB.length;
+      document.getElementById('valDuplicates').textContent = countDup;
+      document.getElementById('valUniqueA').textContent = countUniqueA;
+      document.getElementById('valUniqueB').textContent = countUniqueB;
+
+      progressSection.style.display = 'none';
+      statsGrid.style.display = 'grid';
+      resultsSection.style.display = 'block';
+      btnCompare.disabled = false;
+
+      renderTable();
+    });
+
+    function renderTable() {
+      const query = searchBox.value.toLowerCase().trim();
+      tableBody.innerHTML = '';
+
+      const filtered = processedResults.filter(row => {
+        if (currentFilter === 'duplicate' && row.type !== 'duplicate') return false;
+        if (currentFilter === 'unique-both' && row.type === 'duplicate') return false;
+        if (currentFilter === 'unique-a' && row.type !== 'unique-a') return false;
+        if (currentFilter === 'unique-b' && row.type !== 'unique-b') return false;
+
+        if (query) {
+          return row.pathA.toLowerCase().includes(query) || row.pathB.toLowerCase().includes(query);
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No files match the selected filter.</td></tr>`;
+        return;
+      }
+
+      const rowsHtml = filtered.map(item => {
+        let badgeHtml = '';
+        if (item.type === 'duplicate') {
+          badgeHtml = '<span class="badge badge-duplicate">Duplicate</span>';
+        } else if (item.type === 'unique-a') {
+          badgeHtml = '<span class="badge badge-unique-a">Unique to A</span>';
+        } else {
+          badgeHtml = '<span class="badge badge-unique-b">Unique to B</span>';
+        }
+
+        return `
+          <tr>
+            <td>${badgeHtml}</td>
+            <td>${escapeHtml(item.pathA)}</td>
+            <td>${escapeHtml(item.pathB)}</td>
+            <td>${formatBytes(item.size)}</td>
+            <td><code>${item.hash}</code></td>
+          </tr>
+        `;
+      }).join('');
+
+      tableBody.innerHTML = rowsHtml;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTable();
+      });
+    });
+
+    searchBox.addEventListener('input', () => {
+      renderTable();
+    });
+
+    btnExport.addEventListener('click', () => {
+      if (processedResults.length === 0) return;
+
+      const header = ['Status', 'Folder A Relative Path', 'Folder B Relative Path', 'File Size (Bytes)', 'Hash Signature'];
+      const rows = processedResults.map(r => [
+        r.type,
+        `"${r.pathA.replace(/"/g, '""')}"`,
+        `"${r.pathB.replace(/"/g, '""')}"`,
+        r.size,
+        `"${r.hash}"`
+      ]);
+
+      const csvContent = [header.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `folder_comparison_results_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  </script>
+</body>
+</html>
