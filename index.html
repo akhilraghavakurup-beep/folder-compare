@@ -1,307 +1,567 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Folder Compare & Duplicate Finder (100% Local)</title>
+  <title>Folder Compare & Duplicate Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg: #0b0f19;
+      --surface: #111827;
+      --surface-elevated: #1f293d;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(56, 189, 248, 0.4);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
       --primary: #38bdf8;
-      --primary-hover: #0284c7;
-      --success: #34d399;
-      --success-hover: #059669;
-      --warning: #fbbf24;
-      --danger: #f87171;
+      --primary-hover: #0ea5e9;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --danger: #f43f5e;
+      --danger-glow: rgba(244, 63, 94, 0.2);
       --accent: #818cf8;
-      --accent-hover: #6366f1;
+      --accent-glow: rgba(129, 140, 248, 0.2);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
     body {
       background-color: var(--bg);
-      color: var(--text);
-      padding: 24px 16px;
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1240px;
+      width: 100%;
       margin: 0 auto;
+      padding: 36px 20px 48px;
+      flex: 1;
     }
 
+    /* Header */
     header {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
     }
 
-    header h1 {
-      font-size: 2rem;
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.2);
       color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
     }
 
     header p {
       color: var(--text-muted);
-      font-size: 0.95rem;
+      font-size: 1rem;
+      max-width: 650px;
+      margin: 0 auto;
     }
 
-    .privacy-badge {
+    .privacy-tag {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(52, 211, 153, 0.1);
-      border: 1px solid var(--success);
+      margin-top: 14px;
+      font-size: 0.8rem;
       color: var(--success);
+      background: var(--success-glow);
+      border: 1px solid rgba(16, 185, 129, 0.3);
       padding: 4px 12px;
       border-radius: 9999px;
-      font-size: 0.82rem;
-      margin-top: 10px;
       font-weight: 500;
     }
 
-    .folders-grid {
+    /* Folder Pickers Grid */
+    .pickers-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     @media (max-width: 768px) {
-      .folders-grid {
+      .pickers-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    .folder-card {
-      background: var(--card-bg);
-      border: 2px dashed var(--card-border);
-      border-radius: 12px;
-      padding: 24px;
+    .picker-card {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
       text-align: center;
-      transition: all 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
+      cursor: pointer;
     }
 
-    .folder-card.active {
-      border-color: var(--primary);
+    .picker-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(31, 41, 61, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .picker-card.active {
       border-style: solid;
-      background: rgba(30, 41, 59, 0.85);
+      border-color: var(--primary);
+      background: rgba(17, 24, 39, 0.85);
+      box-shadow: 0 8px 24px -6px var(--primary-glow);
     }
 
-    .folder-card h2 {
-      font-size: 1.25rem;
-      margin-bottom: 8px;
-      color: var(--text);
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 14px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(56, 189, 248, 0.1);
+      border-radius: 12px;
     }
 
-    .folder-card .status {
+    .picker-card h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .picker-card .folder-info {
       font-size: 0.875rem;
       color: var(--text-muted);
-      margin-bottom: 16px;
-      min-height: 20px;
+      margin-bottom: 18px;
+      min-height: 22px;
       word-break: break-all;
     }
 
-    .btn-select {
-      display: inline-block;
-      background: var(--card-border);
-      color: var(--text);
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
+    .picker-card .folder-info strong {
+      color: var(--text-main);
     }
 
-    .btn-select:hover {
-      background: #475569;
+    .btn-choose {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      padding: 9px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .picker-card:hover .btn-choose {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: var(--primary);
     }
 
     input[type="file"] {
       display: none;
     }
 
-    .options-bar {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 20px;
+    /* Options & Actions Bar */
+    .action-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 24px;
+      margin-bottom: 24px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
 
-    .radio-group {
+    .modes-group {
       display: flex;
       align-items: center;
       gap: 16px;
       font-size: 0.9rem;
     }
 
-    .radio-group label {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .mode-label {
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .btn-primary {
-      background: var(--primary);
-      color: #0f172a;
+    .radio-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .radio-pill:has(input:checked) {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .radio-pill input {
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .btn-compare {
+      background: linear-gradient(135deg, var(--primary) 0%, #0284c7 100%);
+      color: #0b0f19;
       border: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-size: 1rem;
+      padding: 12px 32px;
+      border-radius: 12px;
+      font-size: 0.98rem;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px var(--primary-glow);
     }
 
-    .btn-primary:hover:not(:disabled) {
-      background: var(--primary-hover);
+    .btn-compare:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(56, 189, 248, 0.4);
     }
 
-    .btn-primary:disabled {
-      opacity: 0.5;
+    .btn-compare:disabled {
+      opacity: 0.4;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
-    .progress-section {
+    /* Progress Bar */
+    .progress-box {
       display: none;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
     }
 
-    .progress-bar-bg {
-      background: var(--card-border);
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .progress-track {
+      background: rgba(255, 255, 255, 0.06);
       border-radius: 9999px;
-      height: 12px;
+      height: 10px;
       overflow: hidden;
-      margin: 12px 0 8px;
     }
 
-    .progress-bar-fill {
+    .progress-fill {
       background: linear-gradient(90deg, var(--primary), var(--accent));
       height: 100%;
       width: 0%;
       transition: width 0.1s linear;
+      border-radius: 9999px;
     }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
+    /* Statistics Grid (Shown after compare) */
+    .stats-container {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
     }
 
     .stat-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .stat-card .label {
-      font-size: 0.8rem;
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--border);
+    }
+
+    .stat-card.card-dup::before { background: var(--danger); }
+    .stat-card.card-a::before { background: var(--primary); }
+    .stat-card.card-b::before { background: var(--accent); }
+
+    .stat-label {
+      font-size: 0.78rem;
       color: var(--text-muted);
       text-transform: uppercase;
       font-weight: 600;
+      letter-spacing: 0.05em;
     }
 
-    .stat-card .value {
-      font-size: 1.5rem;
+    .stat-value {
+      font-size: 1.85rem;
       font-weight: 700;
-      margin-top: 4px;
+      margin-top: 6px;
+      color: var(--text-main);
+      font-feature-settings: "tnum";
     }
 
-    /* Actions Panel for creating Unique Folders */
-    .export-panel {
-      background: linear-gradient(145deg, #1e293b, #0f172a);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
+    /* Export Unique Folders Panel (AFTER COMPARE ONLY) */
+    .export-section {
+      display: none; /* Only revealed after comparison */
+      background: linear-gradient(180deg, rgba(31, 41, 61, 0.4) 0%, var(--surface) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .export-header {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
     }
 
-    .export-panel-title {
-      font-size: 1.1rem;
+    .export-header h2 {
+      font-size: 1.2rem;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 8px;
-      color: var(--text);
+      gap: 10px;
     }
 
-    .export-actions-grid {
+    .export-cards-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 18px;
     }
 
     @media (max-width: 768px) {
-      .export-actions-grid {
+      .export-cards-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    .export-box {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 16px;
+    .export-card {
+      background: rgba(11, 15, 25, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .export-box h3 {
-      font-size: 1rem;
+    .export-card-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      font-weight: 600;
+      font-size: 1rem;
     }
 
-    .export-box p {
-      font-size: 0.82rem;
+    .export-card p {
+      font-size: 0.85rem;
       color: var(--text-muted);
+      flex: 1;
     }
 
-    .export-box-buttons {
+    .export-btn-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 4px;
+      gap: 10px;
+      margin-top: 6px;
     }
 
-    .btn-action {
-      background: var(--card-border);
-      color: var(--text);
+    .btn-dl {
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
       border: none;
+    }
+
+    .btn-dl-save-a {
+      background: var(--primary);
+      color: #0b0f19;
+    }
+    .btn-dl-save-a:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-dl-save-b {
+      background: var(--accent);
+      color: #0b0f19;
+    }
+    .btn-dl-save-b:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-dl-zip {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+    .btn-dl-zip:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .btn-dl:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Results Table Section */
+    .results-box {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .toolbar {
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter-tab {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-tab:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .filter-tab.active {
+      background: var(--primary);
+      color: #0b0f19;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search-input {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      color: var(--text-main);
       padding: 8px 14px;
-      border-radius: 6px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      min-width: 240px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-csv {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
@@ -311,89 +571,12 @@
       transition: all 0.2s;
     }
 
-    .btn-action:hover:not(:disabled) {
-      background: #475569;
+    .btn-csv:hover {
+      background: rgba(16, 185, 129, 0.25);
     }
 
-    .btn-action-primary {
-      background: #0284c7;
-      color: white;
-    }
-
-    .btn-action-primary:hover:not(:disabled) {
-      background: #0369a1;
-    }
-
-    .btn-action-accent {
-      background: #6366f1;
-      color: white;
-    }
-
-    .btn-action-accent:hover:not(:disabled) {
-      background: #4f46e5;
-    }
-
-    .btn-action:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .filter-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .tabs-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .tab-btn.active {
-      background: var(--primary);
-      color: #0f172a;
-      border-color: var(--primary);
-    }
-
-    .search-box {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 0.88rem;
-      min-width: 250px;
-    }
-
-    .search-box:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    .results-container {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .table-wrapper {
-      max-height: 550px;
+    .table-container {
+      max-height: 520px;
       overflow-y: auto;
     }
 
@@ -401,253 +584,311 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
-      font-size: 0.88rem;
+      font-size: 0.875rem;
     }
 
     th {
-      background: #111827;
+      background: #0d131f;
       color: var(--text-muted);
-      padding: 12px 16px;
+      padding: 12px 18px;
       position: sticky;
       top: 0;
       font-weight: 600;
-      border-bottom: 1px solid var(--card-border);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      z-index: 1;
     }
 
     td {
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-      color: var(--text);
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
       word-break: break-all;
     }
 
-    tr:hover {
+    tr:hover td {
       background: rgba(255, 255, 255, 0.02);
     }
 
+    /* Badges */
     .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 6px;
       font-size: 0.75rem;
       font-weight: 600;
       white-space: nowrap;
     }
 
     .badge-duplicate {
-      background: rgba(248, 113, 113, 0.2);
+      background: var(--danger-glow);
       color: var(--danger);
-      border: 1px solid var(--danger);
+      border: 1px solid rgba(244, 63, 94, 0.3);
     }
 
     .badge-unique-a {
-      background: rgba(56, 189, 248, 0.2);
+      background: var(--primary-glow);
       color: var(--primary);
-      border: 1px solid var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
     }
 
     .badge-unique-b {
-      background: rgba(129, 140, 248, 0.2);
+      background: var(--accent-glow);
       color: var(--accent);
-      border: 1px solid var(--accent);
+      border: 1px solid rgba(129, 140, 248, 0.3);
     }
 
-    .export-btn {
-      background: #10b981;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-
-    .export-btn:hover {
-      background: #059669;
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--text-muted);
     }
 
     .empty-state {
-      padding: 48px;
+      padding: 56px 20px;
       text-align: center;
       color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      background: #090d16;
+      padding: 22px 20px;
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .credit-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #e2e8f0;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px 14px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .heart {
+      color: #f43f5e;
+      display: inline-block;
+      animation: heartbeat 1.8s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
     }
   </style>
 </head>
 <body>
 
   <div class="container">
+    <!-- Header -->
     <header>
-      <h1>Folder Comparison & Duplicate Filter</h1>
-      <p>Compare two folders right inside your web browser without uploading files or installing apps.</p>
-      <div class="privacy-badge">
-        <span>🔒</span> 100% Offline &amp; Private: Zero network uploads. Runs locally in your browser.
+      <div class="brand-pill">
+        <span>⚡</span> FolderDiff Studio
+      </div>
+      <h1>Folder Comparison &amp; Duplicate Finder</h1>
+      <p>Compare two directories for duplicates and extract unique files instantly without command prompt, PowerShell, or external software.</p>
+      <div class="privacy-tag">
+        <span>🔒</span> 100% Client-Side • Zero Data Uploaded • Completely Private
       </div>
     </header>
 
-    <!-- Folder Pickers -->
-    <div class="folders-grid">
-      <div class="folder-card" id="cardA">
+    <!-- Folder Selectors -->
+    <div class="pickers-grid">
+      <div class="picker-card" id="cardA" onclick="document.getElementById('inputA').click()">
+        <div class="card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        </div>
         <h2>Folder A</h2>
-        <div class="status" id="statusA">No folder selected</div>
-        <label class="btn-select">
+        <div class="folder-info" id="statusA">Click to select folder</div>
+        <div class="btn-choose">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
           Choose Folder A
-          <input type="file" id="inputA" webkitdirectory directory multiple>
-        </label>
+        </div>
+        <input type="file" id="inputA" webkitdirectory directory multiple>
       </div>
 
-      <div class="folder-card" id="cardB">
+      <div class="picker-card" id="cardB" onclick="document.getElementById('inputB').click()">
+        <div class="card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        </div>
         <h2>Folder B</h2>
-        <div class="status" id="statusB">No folder selected</div>
-        <label class="btn-select">
+        <div class="folder-info" id="statusB">Click to select folder</div>
+        <div class="btn-choose">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
           Choose Folder B
-          <input type="file" id="inputB" webkitdirectory directory multiple>
-        </label>
+        </div>
+        <input type="file" id="inputB" webkitdirectory directory multiple>
       </div>
     </div>
 
-    <!-- Options and Actions -->
-    <div class="options-bar">
-      <div class="radio-group">
-        <strong>Comparison Mode:</strong>
-        <label>
+    <!-- Options and Compare Trigger -->
+    <div class="action-panel">
+      <div class="modes-group">
+        <span class="mode-label">Mode:</span>
+        <label class="radio-pill">
           <input type="radio" name="method" value="hash" checked>
-          Exact File Content (SHA-256 Hash)
+          <span>Exact Content (SHA-256 Hash)</span>
         </label>
-        <label>
+        <label class="radio-pill">
           <input type="radio" name="method" value="quick">
-          Quick (Relative Path + File Size)
+          <span>Fast (Relative Path + File Size)</span>
         </label>
       </div>
-      <button class="btn-primary" id="btnCompare" disabled>Compare Folders</button>
+      <button class="btn-compare" id="btnCompare" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+        Compare Folders
+      </button>
     </div>
 
-    <!-- Progress Tracker -->
-    <div class="progress-section" id="progressSection">
-      <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+    <!-- Progress Indicator -->
+    <div class="progress-box" id="progressSection">
+      <div class="progress-header">
         <span id="progressText">Analyzing files...</span>
-        <span id="progressPercent">0%</span>
+        <span id="progressPercent" style="color: var(--primary); font-weight: 700;">0%</span>
       </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progressBar"></div>
-      </div>
-    </div>
-
-    <!-- Statistics -->
-    <div class="stats-grid" id="statsGrid" style="display: none;">
-      <div class="stat-card">
-        <div class="label">Total Folder A Files</div>
-        <div class="value" id="valTotalA">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Total Folder B Files</div>
-        <div class="value" id="valTotalB">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label" style="color: var(--danger)">Duplicate Files Found</div>
-        <div class="value" id="valDuplicates" style="color: var(--danger)">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label" style="color: var(--primary)">Unique to Folder A</div>
-        <div class="value" id="valUniqueA" style="color: var(--primary)">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label" style="color: var(--accent)">Unique to Folder B</div>
-        <div class="value" id="valUniqueB" style="color: var(--accent)">0</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar"></div>
       </div>
     </div>
 
-    <!-- Export Unique Folders Section (Always Visible) -->
-    <div class="export-panel" id="exportPanel">
-      <div class="export-panel-title">
-        <div>
-          <span>📂</span> <strong>Create &amp; Save Unique Folders</strong>
-        </div>
-        <div class="export-panel-sub" id="exportHintText" style="font-size:0.85rem;color:var(--text-muted);font-weight:normal;">
-          Select folders and click &quot;Compare Folders&quot; above to activate these options
-        </div>
+    <!-- Metrics Summary (Shown after comparison) -->
+    <div class="stats-container" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-label">Folder A Total</div>
+        <div class="stat-value" id="valTotalA">0</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-label">Folder B Total</div>
+        <div class="stat-value" id="valTotalB">0</div>
+      </div>
+      <div class="stat-card card-dup">
+        <div class="stat-label" style="color: var(--danger)">Duplicates Found</div>
+        <div class="stat-value" id="valDuplicates" style="color: var(--danger)">0</div>
+      </div>
+      <div class="stat-card card-a">
+        <div class="stat-label" style="color: var(--primary)">Unique to Folder A</div>
+        <div class="stat-value" id="valUniqueA" style="color: var(--primary)">0</div>
+      </div>
+      <div class="stat-card card-b">
+        <div class="stat-label" style="color: var(--accent)">Unique to Folder B</div>
+        <div class="stat-value" id="valUniqueB" style="color: var(--accent)">0</div>
+      </div>
+    </div>
 
-      <div class="export-actions-grid">
-        <!-- Unique A Export -->
-        <div class="export-box">
-          <h3>
-            <span style="color: var(--primary);">Unique to Folder A</span>
-            <span id="badgeCountA" class="badge">Not compared yet</span>
-          </h3>
-          <p>Export all non-duplicate files from Folder A with their original folder structure preserved.</p>
-          <div class="export-box-buttons">
-            <button class="btn-action btn-action-primary" id="btnSaveDiskA" disabled>
+    <!-- Export Unique Folders Section (APPEARS ONLY AFTER COMPARE) -->
+    <div class="export-section" id="exportSection">
+      <div class="export-header">
+        <h2>
+          <span>📂</span> Export &amp; Save Unique Folders
+        </h2>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+          Extract non-duplicates while preserving their nested folder structure
+        </span>
+      </div>
+      <div class="export-cards-grid">
+        <!-- Unique A -->
+        <div class="export-card">
+          <div class="export-card-title">
+            <span style="color: var(--primary);">Folder A Unique Files</span>
+            <span id="badgeCountA" class="badge badge-unique-a">0 files</span>
+          </div>
+          <p>Export all non-duplicate items found in Folder A.</p>
+          <div class="export-btn-group">
+            <button class="btn-dl btn-dl-save-a" id="btnSaveDiskA">
               📁 Save to Local Folder
             </button>
-            <button class="btn-action" id="btnZipA" disabled>
-              📦 Download as ZIP (.zip)
+            <button class="btn-dl btn-dl-zip" id="btnZipA">
+              📦 Download as ZIP
             </button>
           </div>
         </div>
 
-        <!-- Unique B Export -->
-        <div class="export-box">
-          <h3>
-            <span style="color: var(--accent);">Unique to Folder B</span>
-            <span id="badgeCountB" class="badge">Not compared yet</span>
-          </h3>
-          <p>Export all non-duplicate files from Folder B with their original folder structure preserved.</p>
-          <div class="export-box-buttons">
-            <button class="btn-action btn-action-accent" id="btnSaveDiskB" disabled>
+        <!-- Unique B -->
+        <div class="export-card">
+          <div class="export-card-title">
+            <span style="color: var(--accent);">Folder B Unique Files</span>
+            <span id="badgeCountB" class="badge badge-unique-b">0 files</span>
+          </div>
+          <p>Export all non-duplicate items found in Folder B.</p>
+          <div class="export-btn-group">
+            <button class="btn-dl btn-dl-save-b" id="btnSaveDiskB">
               📁 Save to Local Folder
             </button>
-            <button class="btn-action" id="btnZipB" disabled>
-              📦 Download as ZIP (.zip)
+            <button class="btn-dl btn-dl-zip" id="btnZipB">
+              📦 Download as ZIP
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Filters & Table Results -->
-    <div id="resultsSection" style="display: none;">
-      <div class="filter-tabs">
-        <div class="tabs-group">
-          <button class="tab-btn active" data-filter="all">All Files</button>
-          <button class="tab-btn" data-filter="duplicate">Duplicates Only</button>
-          <button class="tab-btn" data-filter="unique-both">Non-Duplicates (Unique to Either)</button>
-          <button class="tab-btn" data-filter="unique-a">Unique to Folder A</button>
-          <button class="tab-btn" data-filter="unique-b">Unique to Folder B</button>
+    <!-- Results Table Section -->
+    <div class="results-box" id="resultsSection">
+      <div class="toolbar">
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all">All Files</button>
+          <button class="filter-tab" data-filter="duplicate">Duplicates Only</button>
+          <button class="filter-tab" data-filter="unique-both">All Non-Duplicates</button>
+          <button class="filter-tab" data-filter="unique-a">Unique to Folder A</button>
+          <button class="filter-tab" data-filter="unique-b">Unique to Folder B</button>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="searchBox" class="search-box" placeholder="Filter by filename or path...">
-          <button class="export-btn" id="btnExport">Export CSV</button>
+        <div class="toolbar-actions">
+          <input type="text" id="searchBox" class="search-input" placeholder="Search filenames or paths...">
+          <button class="btn-csv" id="btnExport">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Export CSV
+          </button>
         </div>
       </div>
 
-      <div class="results-container">
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 140px;">Status</th>
-                <th>Folder A File</th>
-                <th>Folder B File</th>
-                <th style="width: 120px;">File Size</th>
-                <th style="width: 150px;">Hash / Signature</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody">
-            </tbody>
-          </table>
-        </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 130px;">Status</th>
+              <th>Folder A Path</th>
+              <th>Folder B Path</th>
+              <th style="width: 110px;">Size</th>
+              <th style="width: 140px;">Signature</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
       </div>
     </div>
 
   </div>
 
+  <!-- Tag / Credit Footer -->
+  <footer>
+    <div class="credit-tag">
+      Made with <span class="heart">❤️</span> by <strong>Kurup</strong> &bull; Love from <strong>Vettiyar</strong>
+    </div>
+  </footer>
+
   <script>
     let filesA = [];
     let filesB = [];
     let processedResults = [];
-    let uniqueFilesA = []; // List of { file: File, relPath: string }
-    let uniqueFilesB = []; // List of { file: File, relPath: string }
+    let uniqueFilesA = [];
+    let uniqueFilesB = [];
     let currentFilter = 'all';
 
     const inputA = document.getElementById('inputA');
@@ -657,12 +898,14 @@
     const cardA = document.getElementById('cardA');
     const cardB = document.getElementById('cardB');
     const btnCompare = document.getElementById('btnCompare');
+
     const progressSection = document.getElementById('progressSection');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
     const progressPercent = document.getElementById('progressPercent');
+
     const statsGrid = document.getElementById('statsGrid');
-    const exportPanel = document.getElementById('exportPanel');
+    const exportSection = document.getElementById('exportSection');
     const resultsSection = document.getElementById('resultsSection');
     const tableBody = document.getElementById('tableBody');
     const searchBox = document.getElementById('searchBox');
@@ -686,11 +929,11 @@
     inputA.addEventListener('change', (e) => {
       filesA = Array.from(e.target.files);
       if (filesA.length > 0) {
-        const rootName = filesA[0].webkitRelativePath.split('/')[0] || "Selected Folder";
-        statusA.innerHTML = `<strong>${rootName}</strong> (${filesA.length} files)`;
+        const rootName = filesA[0].webkitRelativePath.split('/')[0] || "Folder A";
+        statusA.innerHTML = `<strong>${rootName}</strong> &bull; ${filesA.length} files`;
         cardA.classList.add('active');
       } else {
-        statusA.textContent = 'No folder selected';
+        statusA.textContent = 'Click to select folder';
         cardA.classList.remove('active');
       }
       btnCompare.disabled = !(filesA.length > 0 && filesB.length > 0);
@@ -699,11 +942,11 @@
     inputB.addEventListener('change', (e) => {
       filesB = Array.from(e.target.files);
       if (filesB.length > 0) {
-        const rootName = filesB[0].webkitRelativePath.split('/')[0] || "Selected Folder";
-        statusB.innerHTML = `<strong>${rootName}</strong> (${filesB.length} files)`;
+        const rootName = filesB[0].webkitRelativePath.split('/')[0] || "Folder B";
+        statusB.innerHTML = `<strong>${rootName}</strong> &bull; ${filesB.length} files`;
         cardB.classList.add('active');
       } else {
-        statusB.textContent = 'No folder selected';
+        statusB.textContent = 'Click to select folder';
         cardB.classList.remove('active');
       }
       btnCompare.disabled = !(filesA.length > 0 && filesB.length > 0);
@@ -734,7 +977,7 @@
       btnCompare.disabled = true;
       progressSection.style.display = 'block';
       statsGrid.style.display = 'none';
-      // exportPanel stays visible
+      exportSection.style.display = 'none';
       resultsSection.style.display = 'none';
 
       const method = document.querySelector('input[name="method"]:checked').value;
@@ -755,7 +998,7 @@
         const file = filesA[i];
         const relPath = getRelativePath(file);
         const key = method === 'hash' ? await computeFileHash(file) : `${relPath}_${file.size}`;
-        const hashDisplay = method === 'hash' ? key.substring(0, 12) + '...' : 'Name+Size';
+        const hashDisplay = method === 'hash' ? key.substring(0, 10) + '...' : 'Name+Size';
 
         if (!mapA.has(key)) mapA.set(key, []);
         mapA.get(key).push({ file, relPath, size: file.size, key, hashDisplay });
@@ -771,7 +1014,7 @@
         const file = filesB[i];
         const relPath = getRelativePath(file);
         const key = method === 'hash' ? await computeFileHash(file) : `${relPath}_${file.size}`;
-        const hashDisplay = method === 'hash' ? key.substring(0, 12) + '...' : 'Name+Size';
+        const hashDisplay = method === 'hash' ? key.substring(0, 10) + '...' : 'Name+Size';
 
         if (!mapB.has(key)) mapB.set(key, []);
         mapB.get(key).push({ file, relPath, size: file.size, key, hashDisplay });
@@ -837,8 +1080,9 @@
       document.getElementById('valUniqueA').textContent = uniqueFilesA.length;
       document.getElementById('valUniqueB').textContent = uniqueFilesB.length;
 
-      badgeCountA.textContent = `${uniqueFilesA.length} files`;
-      badgeCountB.textContent = `${uniqueFilesB.length} files`;
+      // Update export buttons & labels
+      badgeCountA.textContent = `${uniqueFilesA.length} file(s)`;
+      badgeCountB.textContent = `${uniqueFilesB.length} file(s)`;
 
       btnSaveDiskA.disabled = uniqueFilesA.length === 0;
       btnZipA.disabled = uniqueFilesA.length === 0;
@@ -847,8 +1091,7 @@
 
       progressSection.style.display = 'none';
       statsGrid.style.display = 'grid';
-            document.getElementById('exportHintText').textContent = 'Ready: Export ' + uniqueFilesA.length + ' file(s) from A or ' + uniqueFilesB.length + ' file(s) from B';
-      exportPanel.style.display = 'block';
+      exportSection.style.display = 'block'; // DISPLAYED ONLY AFTER COMPARE!
       resultsSection.style.display = 'block';
       btnCompare.disabled = false;
 
@@ -876,7 +1119,7 @@
       });
 
       if (filtered.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No files match the selected filter.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No matching files found.</td></tr>`;
         return;
       }
 
@@ -894,9 +1137,9 @@
       }).join('');
     }
 
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.filter-tab').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentFilter = btn.dataset.filter;
         renderTable();
@@ -908,7 +1151,7 @@
     // CSV Export
     btnExport.addEventListener('click', () => {
       if (!processedResults.length) return;
-      const header = ['Status', 'Folder A Path', 'Folder B Path', 'Size (Bytes)', 'Hash'];
+      const header = ['Status', 'Folder A Path', 'Folder B Path', 'Size (Bytes)', 'Signature'];
       const rows = processedResults.map(r => [
         r.type, `"${r.pathA.replace(/"/g, '""')}"`, `"${r.pathB.replace(/"/g, '""')}"`, r.size, `"${r.hash}"`
       ]);
@@ -924,12 +1167,11 @@
     // --- SAVE TO LOCAL FOLDER VIA DIRECTORY PICKER ---
     async function saveFilesToDirectory(items, defaultFolderName) {
       if (!('showDirectoryPicker' in window)) {
-        alert("Your browser doesn't support direct local directory saving. Please use the 'Download as ZIP' button instead.");
+        alert("Your browser doesn't support direct local directory saving. Please use 'Download as ZIP' instead.");
         return;
       }
 
       try {
-        // Prompt user to pick where to save the folder
         const parentHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
         const targetDirHandle = await parentHandle.getDirectoryHandle(defaultFolderName, { create: true });
 
@@ -962,7 +1204,7 @@
         }
 
         progressSection.style.display = 'none';
-        alert(`Successfully created folder "${defaultFolderName}" with ${items.length} unique files!`);
+        alert(`Successfully created folder "${defaultFolderName}" with ${items.length} unique file(s)!`);
       } catch (err) {
         progressSection.style.display = 'none';
         if (err.name !== 'AbortError') {
@@ -980,7 +1222,7 @@
       saveFilesToDirectory(uniqueFilesB, 'Unique_Folder_B');
     });
 
-    // --- PURE JS ZIP GENERATOR (ZERO EXTERNAL DEPENDENCIES) ---
+    // --- PURE JS ZIP GENERATOR ---
     function crc32(buf) {
       let table = new Uint32Array(256);
       for (let i = 0; i < 256; i++) {
