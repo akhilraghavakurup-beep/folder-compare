@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Folder Compare & Duplicate Finder (100% Local)</title>
@@ -554,24 +557,30 @@
       </div>
     </div>
 
-    <!-- Export Unique Folders Section -->
-    <div class="export-panel" id="exportPanel" style="display: none;">
+    <!-- Export Unique Folders Section (Always Visible) -->
+    <div class="export-panel" id="exportPanel">
       <div class="export-panel-title">
-        <span>📂</span> Create &amp; Save Unique Folders
+        <div>
+          <span>📂</span> <strong>Create &amp; Save Unique Folders</strong>
+        </div>
+        <div class="export-panel-sub" id="exportHintText" style="font-size:0.85rem;color:var(--text-muted);font-weight:normal;">
+          Select folders and click &quot;Compare Folders&quot; above to activate these options
+        </div>
       </div>
+
       <div class="export-actions-grid">
         <!-- Unique A Export -->
         <div class="export-box">
           <h3>
             <span style="color: var(--primary);">Unique to Folder A</span>
-            <span id="badgeCountA" class="badge badge-unique-a">0 files</span>
+            <span id="badgeCountA" class="badge">Not compared yet</span>
           </h3>
           <p>Export all non-duplicate files from Folder A with their original folder structure preserved.</p>
           <div class="export-box-buttons">
-            <button class="btn-action btn-action-primary" id="btnSaveDiskA">
+            <button class="btn-action btn-action-primary" id="btnSaveDiskA" disabled>
               📁 Save to Local Folder
             </button>
-            <button class="btn-action" id="btnZipA">
+            <button class="btn-action" id="btnZipA" disabled>
               📦 Download as ZIP (.zip)
             </button>
           </div>
@@ -581,14 +590,14 @@
         <div class="export-box">
           <h3>
             <span style="color: var(--accent);">Unique to Folder B</span>
-            <span id="badgeCountB" class="badge badge-unique-b">0 files</span>
+            <span id="badgeCountB" class="badge">Not compared yet</span>
           </h3>
           <p>Export all non-duplicate files from Folder B with their original folder structure preserved.</p>
           <div class="export-box-buttons">
-            <button class="btn-action btn-action-accent" id="btnSaveDiskB">
+            <button class="btn-action btn-action-accent" id="btnSaveDiskB" disabled>
               📁 Save to Local Folder
             </button>
-            <button class="btn-action" id="btnZipB">
+            <button class="btn-action" id="btnZipB" disabled>
               📦 Download as ZIP (.zip)
             </button>
           </div>
@@ -725,7 +734,7 @@
       btnCompare.disabled = true;
       progressSection.style.display = 'block';
       statsGrid.style.display = 'none';
-      exportPanel.style.display = 'none';
+      // exportPanel stays visible
       resultsSection.style.display = 'none';
 
       const method = document.querySelector('input[name="method"]:checked').value;
@@ -838,6 +847,7 @@
 
       progressSection.style.display = 'none';
       statsGrid.style.display = 'grid';
+            document.getElementById('exportHintText').textContent = 'Ready: Export ' + uniqueFilesA.length + ' file(s) from A or ' + uniqueFilesB.length + ' file(s) from B';
       exportPanel.style.display = 'block';
       resultsSection.style.display = 'block';
       btnCompare.disabled = false;
